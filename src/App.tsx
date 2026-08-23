@@ -1,25 +1,695 @@
 import { useState } from 'react';
-import type { ReactNode } from 'react';
-import { Activity, ArrowLeft, ArrowRight, Bell, BookOpen, BrainCircuit, Building2, Calendar, Check, ChevronDown, ChevronRight, CircleHelp, ClipboardCheck, Filter, GraduationCap, HeartPulse, LayoutDashboard, Menu, MessageSquare, Network, Search, Settings, ShieldCheck, Sparkles, Target, Users, Video, X } from 'lucide-react';
-import { branches, classes, interventions, networkTrend, npsTrend, qualityDimensions, regions, teachers } from '@/data/mockData';
-import type { PageId, UserRole } from '@/types';
-import { Button, Card, DetailLink, Eyebrow, KPI, MetricRow, ProgressBar, SectionHeader, StatusBadge, Trend, InsightIcon, CheckIcon } from '@/components/ui';
-import { Donut, LineChart, Sparkline } from '@/components/charts';
+import {
+  BarChart3, BookOpen, Eye, Grid3x3, Home, LogOut, Menu, Settings, Users,
+  MessageSquare, TrendingUp, Award, AlertCircle, Zap, Users2, Star, ClipboardCheck, ServerCog
+} from 'lucide-react';
+import {
+  Card, KPI, Button, StatusBadge, MetricRow, SectionHeader,
+  EmptyState, TeacherCard, PriorityCard
+} from '@/components/ui';
+import {
+  centersList, allTeachers, interventions, regions, qualityDimensions,
+  classes, classAssessments, parentFeedback,
+} from '@/data/mockData';
 
-const nav = [{ label: 'Overview', items: [['overview','Quality Overview',LayoutDashboard]] }, { label: 'Performance', items: [['network','Network',Network],['regions','Regions',Building2],['branches','Branches',Building2],['classes','Classes',BookOpen],['teachers','Teachers',Users]] }, { label: 'Quality', items: [['sealive','SEALive',Video],['class-detail','Class Quality',Activity]] }, { label: 'Intelligence', items: [['sealens','SEALens',BrainCircuit]] }, { label: 'Action', items: [['interventions','Interventions',ClipboardCheck],['peer-matching','Peer Matching',Users]] }, { label: 'Learning', items: [['sealearn','SEALearn',GraduationCap]] }] as const;
-function Sidebar({ page, go, collapsed, setCollapsed }: { page: PageId; go: (p: PageId) => void; collapsed: boolean; setCollapsed: (v: boolean) => void }) { return <aside className={`fixed inset-y-0 left-0 z-30 flex flex-col border-r border-slate-200 bg-white transition-all ${collapsed?'w-[72px]':'w-[252px]'}`}><div className={`flex h-[76px] items-center border-b border-slate-100 ${collapsed?'justify-center':'gap-3 px-6'}`}><div className="flex h-9 w-9 items-center justify-center rounded-xl bg-navy-900 text-white"><ShieldCheck size={20}/></div>{!collapsed&&<div><b className="text-base tracking-[.18em] text-navy-900">SEAL</b><p className="text-[9px] text-slate-400">SPARKS ENGLISH</p></div>}</div><div className="flex-1 overflow-y-auto px-3 py-5">{nav.map(g=><div key={g.label} className="mb-5"><p className="mb-2 px-3 text-[9px] font-bold uppercase tracking-widest text-slate-400">{collapsed?'·':g.label}</p>{g.items.map(([id,label,Icon])=><button key={id} title={collapsed?label:undefined} onClick={()=>go(id as PageId)} className={`relative mb-1 flex w-full items-center rounded-lg px-3 py-2.5 text-left text-xs font-semibold ${collapsed?'justify-center':'gap-3'} ${page===id||((id==='branches'||id==='classes')&&page===('branch-detail' as PageId))?'bg-navy-50 text-navy-900':'text-slate-500 hover:bg-slate-50'}`}><Icon size={17}/>{!collapsed&&label}{id==='sealens'&&!collapsed&&<span className="ml-auto rounded-full bg-teal-100 px-1.5 py-0.5 text-[10px] text-teal-700">3</span>}</button>)}</div>)}</div><div className="border-t border-slate-100 p-3"><div className={`flex items-center gap-3 rounded-lg p-2 ${collapsed?'justify-center':''}`}><span className="flex h-8 w-8 items-center justify-center rounded-full bg-teal-100 text-xs font-bold text-teal-800">AP</span>{!collapsed&&<div><b className="text-xs">Alya Pratama</b><p className="text-[10px] text-slate-400">HQ Quality Management</p></div>}</div><button onClick={()=>setCollapsed(!collapsed)} className="mt-2 w-full rounded py-1 text-slate-400">{collapsed?'→':'←'}</button></div></aside> }
-function Topbar({ role, setRole, go }: { role: UserRole; setRole: (r: UserRole)=>void; go:(p:PageId)=>void }) { const [q,setQ]=useState(''); const [open,setOpen]=useState(false); return <header className="fixed left-0 right-0 top-0 z-20 flex h-[76px] items-center justify-between border-b border-slate-200 bg-white/95 px-6 pl-[276px] backdrop-blur"><div className="relative w-[360px]"><Search size={16} className="absolute left-3 top-3 text-slate-400"/><input value={q} onChange={e=>setQ(e.target.value)} placeholder="Search branch, class, teacher..." className="h-10 w-full rounded-lg border border-slate-200 bg-slate-50 pl-10 text-xs outline-none focus:bg-white"/>{q&&<div className="absolute top-12 w-full rounded-xl border border-slate-200 bg-white p-2 shadow-elevated">{['Surabaya','Surabaya A1','Teacher A'].filter(x=>x.toLowerCase().includes(q.toLowerCase())).map(x=><button key={x} onClick={()=>{go(x==='Surabaya'?'branch-detail':x.includes('A1')?'class-detail':'teacher-detail');setQ('')}} className="flex w-full items-center gap-3 rounded-lg p-2.5 text-left text-xs hover:bg-slate-50"><Building2 size={14}/>{x}<ChevronRight size={13} className="ml-auto"/></button>)}</div>}</div><div className="flex items-center gap-2"><div className="hidden items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-xs text-slate-500 md:flex"><Calendar size={14}/>Aug 01 — Aug 19, 2026<ChevronDown size={13}/></div><button className="relative rounded-lg p-2.5 text-slate-500"><Bell size={18}/><i className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-teal-500"/></button><CircleHelp size={18} className="mx-1 text-slate-500"/><select value={role} onChange={e=>setRole(e.target.value as UserRole)} className="rounded-lg border border-slate-200 bg-white px-2 py-2 text-xs font-semibold text-slate-600"><option>HQ</option><option>Branch Manager</option><option>Teacher</option></select></div></header> }
-function Header({ eyebrow,title,sub,action }:{eyebrow?:string;title:string;sub?:string;action?:ReactNode}){return <div className="mb-7 flex items-start justify-between gap-4"><div>{eyebrow&&<Eyebrow>{eyebrow}</Eyebrow>}<h1 className="mt-1.5 text-[26px] font-bold tracking-tight text-slate-900">{title}</h1>{sub&&<p className="mt-1.5 text-sm text-slate-500">{sub}</p>}</div>{action}</div>}
-function Overview({go,role}:{go:(p:PageId)=>void;role:UserRole}) { if(role==='Teacher')return <Teacher go={go}/>; if(role==='Branch Manager')return <Manager go={go}/>; const [metric,setMetric]=useState('Class Quality'); const data=metric==='NPS'?npsTrend:metric==='Teacher Engagement'?networkTrend:qualityDimensions.map(x=>x.value); return <><Header eyebrow="Monday, August 19, 2026" title="Good morning, Alya" sub="Monitor network performance, identify priority areas, and turn insights into action." action={<Button variant="secondary" icon={<Filter size={14}/>}>Filter view</Button>}/><div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4"><KPI label="Teacher Engagement" value="58%" target="Target 90%" trend="3.2%" trendLabel="vs previous" icon={<Users size={17}/>} /><KPI label="NPS" value="41.5" target="Target 60+" trend="2.4" trendLabel="vs previous" icon={<HeartPulse size={17}/>} accent="navy"/><KPI label="Parent Satisfaction" value="4.14 / 5" target="Target 4.6" trend="0.08" trendLabel="vs previous" icon={<MessageSquare size={17}/>} accent="amber"/><KPI label="Class Quality" value="74 / 100" target="Benchmark 78" trend="2.1" trendLabel="vs previous" icon={<Activity size={17}/>} accent="rose"/></div><div className="mt-6 grid gap-6 xl:grid-cols-[1.5fr_1fr]"><Card className="p-6"><SectionHeader eyebrow="Network performance" title="Quality trajectory" description="Network results across the selected period."/><div className="mb-5 flex gap-1 rounded-lg bg-slate-50 p-1">{['NPS','Teacher Engagement','Class Quality'].map(x=><button onClick={()=>setMetric(x)} key={x} className={`rounded-md px-3 py-1.5 text-[10px] font-semibold ${metric===x?'bg-white text-navy-800 shadow-sm':'text-slate-400'}`}>{x}</button>)}</div><div className="flex items-end justify-between"><b className="text-3xl tracking-tight">{metric==='NPS'?'41.5':metric==='Teacher Engagement'?'58%':'74'}</b><Trend>+2.4% this period</Trend></div><div className="mt-5 h-[190px]"><LineChart data={data}/></div></Card><Card className="p-6"><SectionHeader eyebrow="SEALens" title="Priority areas" description="Signals that may require attention."/>{regions.filter(r=>r.status.includes('Priority')).map(r=><button key={r.name} onClick={()=>go('branch-detail')} className="mb-3 w-full rounded-lg border border-slate-100 p-4 text-left hover:bg-slate-50"><div className="flex items-center justify-between"><b className="text-sm">{r.name}</b><StatusBadge status={r.status}/></div><div className="mt-3 grid grid-cols-3 gap-3 text-xs"><span>NPS <b className="block text-base">{r.nps}</b></span><span>Parent Sat. <b className="block text-base">{r.parentSatisfaction}</b></span><span>Quality <b className="block text-base">{r.classQuality}</b></span></div></button>)}<Button variant="ghost" className="w-full" onClick={()=>go('regions')}>View all regions <ChevronRight size={14}/></Button></Card></div><div className="mt-6"><SectionHeader eyebrow="Regional performance" title="How each region is performing"/><Card className="overflow-hidden"><div className="grid grid-cols-6 gap-3 bg-slate-50 px-5 py-3 text-[10px] font-bold uppercase tracking-wider text-slate-400"><span>Region</span><span>NPS</span><span>Parent Sat.</span><span>Engagement</span><span>Quality</span><span>Status</span></div>{regions.map(r=><div key={r.name} className="grid grid-cols-6 items-center gap-3 border-t border-slate-100 px-5 py-4 text-sm"><b>{r.name}</b><span>{r.nps}</span><span>{r.parentSatisfaction}</span><span>{r.teacherEngagement}%</span><span>{r.classQuality}</span><StatusBadge status={r.status}/></div>)}</Card></div></> }
-function Sealens({go,review}:{go:(p:PageId)=>void;review:()=>void}){return <><Header eyebrow="Intelligence layer" title="SEALens" sub="Turn performance signals into actionable recommendations."/><div className="grid gap-6 xl:grid-cols-[1.1fr_1fr]"><Card className="overflow-hidden"><div className="bg-navy-950 p-6 text-white"><Eyebrow>Case analysis · Teacher A · Surabaya A1</Eyebrow><div className="mt-6 flex justify-between"><div><p className="text-[10px] uppercase text-slate-400">Quality score</p><b className="text-5xl">62<span className="text-xl text-slate-500">/100</span></b></div><StatusBadge status="Needs Development"/></div><ProgressBar value={62} color="teal" className="mt-5"/></div><div className="space-y-6 p-6"><div><Eyebrow>01 · Identify</Eyebrow><h3 className="mt-1 font-bold">Student Engagement is significantly below the network benchmark.</h3><div className="mt-3 grid grid-cols-3 gap-3"><div className="rounded-lg bg-rose-50 p-3"><small>Engagement</small><b className="block text-xl text-rose-700">52</b></div><div className="rounded-lg bg-slate-50 p-3"><small>Benchmark</small><b className="block text-xl">74</b></div><div className="rounded-lg bg-slate-50 p-3"><small>Gap</small><b className="block text-xl text-rose-600">−22</b></div></div></div><div><Eyebrow>02 · Diagnose</Eyebrow><h3 className="mt-1 font-bold">Potential contributing signals identified.</h3><div className="mt-4 grid grid-cols-2 gap-4">{([['Questioning Frequency',48],['Participation Rate',64],['Teacher Talk Ratio',68],['Training Completion',76]] as const).map(x=><MetricRow key={x[0]} label={x[0]} value={x[1]} color={x[1]<55?'rose':x[1]>65?'amber':'teal'}/>)}</div></div><div><Eyebrow>03 · Recommend</Eyebrow><h3 className="mt-1 font-bold">Peer Learning — Student Engagement Techniques</h3><div className="mt-3 grid grid-cols-3 rounded-lg bg-teal-50 p-4 text-xs"><span>Owner <b className="block mt-1">Branch Manager</b></span><span>Timeline <b className="block mt-1">2 weeks</b></span><span>Success <b className="block mt-1 text-teal-700">52 → 62+</b></span></div><Button onClick={review} className="mt-4" icon={<ClipboardCheck size={14}/>}>Review recommendation</Button></div></div></Card><div className="space-y-6"><Card className="p-6"><SectionHeader eyebrow="Next best action" title="Connect Teacher A with a high-performing peer"/><p className="text-sm leading-6 text-slate-500">SEALens recommends a guided peer learning session based on class context and demonstrated outcomes.</p><Button onClick={()=>go('peer-matching')} className="mt-4" icon={<Users size={14}/>}>Open peer matching</Button></Card><Card className="p-6"><SectionHeader eyebrow="Connected loop" title="From signal to improvement"/><div className="flex items-center justify-between text-[10px] font-semibold text-teal-700">{['Measure','Identify','Diagnose','Action','Improve'].map((x,i)=><span key={x} className="flex flex-col items-center gap-2"><i className="flex h-8 w-8 items-center justify-center rounded-full bg-teal-50">{i+1}</i>{x}</span>)}</div></Card></div></div></>}
-function Peer({session}:{session:()=>void}){return <><Header eyebrow="Action layer" title="Peer Matching" sub="Connect teachers with internal good practices."/><div className="mb-5 rounded-lg border border-teal-100 bg-teal-50 p-4 text-xs text-teal-800"><b>Active case:</b> Teacher A · Student Engagement · Current score 52</div><div className="grid gap-6 lg:grid-cols-2"><Card className="p-6"><SectionHeader eyebrow="Development focus" title="Teacher A" description="Surabaya · Class A1"/><div className="rounded-xl bg-slate-50 p-5"><small>Needs development</small><h2 className="mt-1 text-2xl font-bold">Student Engagement</h2><b className="mt-4 block text-4xl text-rose-600">52</b><ProgressBar value={52} benchmark={74} color="rose" className="mt-3"/></div></Card><Card className="p-6"><SectionHeader eyebrow="Best match" title="Recommended peer" description="Based on context, class level, and demonstrated outcomes."/><div className="rounded-xl border border-teal-200 p-5"><div className="flex items-center justify-between"><div><h3 className="font-bold">Teacher B</h3><p className="text-xs text-slate-500">Bali · Class B3</p></div><StatusBadge status="Strong"/></div><div className="mt-5 grid grid-cols-3 gap-3 border-y border-slate-100 py-4"><span className="text-[10px]">Student Engagement<b className="block text-lg text-emerald-600">91</b></span><span className="text-[10px]">Similarity<b className="block text-lg text-teal-700">92%</b></span><span className="text-[10px]">Context<b className="block text-lg text-teal-700">88%</b></span></div><div className="mt-4 grid grid-cols-2 gap-2 text-xs text-slate-500">{['Same class level','Similar teaching context','Strong student engagement','Similar schedule'].map(x=><span key={x} className="flex items-center gap-2"><CheckIcon/>{x}</span>)}</div><Button onClick={session} className="mt-5" icon={<Calendar size={14}/>}>Propose session</Button></div></Card></div></>}
-function Interventions({approved}:{approved:boolean}){return <><Header eyebrow="Action layer" title="Intervention Management" sub="Move from recommendation to measurable improvement."/><div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">{['Recommended','Under Review','Approved','In Progress','Completed','Re-measured'].map((x,i)=><Card key={x} className="p-4"><small className="font-bold uppercase tracking-wider text-slate-400">{x}</small><b className="mt-2 block text-2xl">{i===3&&approved?2:i===3?1:i===0?3:2}</b></Card>)}</div><Card className="p-6"><SectionHeader eyebrow="Active interventions" title="Quality improvement pipeline"/>{interventions.map(x=><div key={x.id} className="mb-4 rounded-xl border border-slate-100 p-5"><div className="flex justify-between"><div><b className="text-sm">{x.title}</b><p className="mt-1 text-xs text-slate-500">{x.branch} · {x.teacher} · Owner: {x.owner}</p></div><StatusBadge status={approved&&x.id==='INT-024'?'Approved':x.status}/></div><div className="mt-5 grid gap-4 md:grid-cols-3"><span className="text-[10px] uppercase text-slate-400">Focus area<b className="mt-1 block text-sm normal-case text-slate-700">{x.focus}</b></span><span className="text-[10px] uppercase text-slate-400">Success metric<b className="mt-1 block text-sm normal-case text-teal-700">{x.before} → {x.after??x.target}</b></span><div><div className="mb-2 flex justify-between text-[10px] text-slate-400"><span>Progress</span><b>{x.after?'Improved':'In progress'}</b></div><ProgressBar value={x.after?100:62} color={x.after?'teal':'amber'}/></div></div></div>)}</Card></>}
-function Modal({kind,close,approve}:{kind:'review'|'session';close:()=>void;approve:()=>void}){return <div className="fixed inset-0 z-50 flex items-center justify-center bg-navy-950/30 p-4 backdrop-blur-sm"><div className="w-full max-w-lg rounded-2xl bg-white shadow-elevated"><div className="flex justify-between border-b border-slate-100 p-6"><div><Eyebrow>{kind==='review'?'Human decision':'Peer learning'}</Eyebrow><h2 className="mt-1 text-xl font-bold">{kind==='review'?'Recommendation Review':'Create Peer Learning Session'}</h2></div><button onClick={close}><X size={18}/></button></div><div className="space-y-4 p-6">{kind==='review'?<><p className="text-sm text-slate-600">Approve the recommended peer learning intervention for Teacher A.</p><div className="rounded-xl bg-teal-50 p-4 text-sm"><b>Objective</b><p className="mt-2 text-xs leading-5">Improve questioning techniques and student participation.</p></div><div className="grid grid-cols-2 gap-4 text-xs"><span>Success metric<b className="block mt-1 text-teal-700">52 → 62+</b></span><span>Timeline<b className="block mt-1">2 weeks</b></span></div></>:<><div className="grid grid-cols-2 gap-4"><Field l="Participants" v="Teacher A · Teacher B"/><Field l="Focus area" v="Student Engagement"/></div><Field l="Topic" v="Increasing Student Participation"/><Field l="Duration" v="60 minutes"/><Field l="Date" v="Select a date"/></>}</div><div className="flex justify-end gap-2 border-t border-slate-100 bg-slate-50 p-5"><Button variant="secondary" onClick={close}>Cancel</Button><Button onClick={approve} icon={<Check size={14}/>}>{kind==='review'?'Approve recommendation':'Submit for approval'}</Button></div></div></div>}
-function Field({l,v}:{l:string;v:string}){return <div><label className="text-xs font-semibold text-slate-600">{l}</label><div className="mt-2 rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs">{v}</div></div>}
-function BranchDetail({go}:{go:(p:PageId)=>void}){return <><button onClick={()=>go('branches')} className="mb-5 flex items-center gap-2 text-xs font-semibold text-slate-500"><ArrowLeft size={14}/>All branches</button><Header eyebrow="Branch intelligence · Surabaya" title="Surabaya" sub="Branch Quality Profile" action={<StatusBadge status="High Priority"/>}/><div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4"><KPI label="NPS" value="36" target="Network 41.5" trend="2.1" icon={<HeartPulse size={17}/>} accent="rose"/><KPI label="Parent Satisfaction" value="3.98 / 5" target="Network 4.14" trend="0.04" icon={<MessageSquare size={17}/>} accent="amber"/><KPI label="Teacher Engagement" value="58%" target="Network 58%" trend="1.8%" icon={<Users size={17}/>} accent="navy"/><KPI label="Class Quality" value="61 / 100" target="Network 74" trend="3.2" icon={<Activity size={17}/>} /></div><div className="mt-6 grid gap-6 lg:grid-cols-2"><Card className="p-6"><SectionHeader eyebrow="Quality dimensions" title="Where quality is moving"/>{qualityDimensions.map((x,i)=><MetricRow key={x.label} label={x.label} value={x.value} benchmark={x.benchmark} color={i===0?'rose':i===1?'amber':'teal'} className="mb-5"/> )}</Card><Card className="p-6"><SectionHeader eyebrow="Last 90 days" title="Performance trend"/><div className="flex items-center gap-3"><b className="text-3xl">61</b><Trend>+3.2 this period</Trend></div><div className="mt-5 h-[190px]"><LineChart data={[54,56,55,57,56,58,57,59,58,60,59,61]} color="#e15252"/></div></Card></div><div className="mt-6 grid gap-6 lg:grid-cols-2"><Card className="p-6"><SectionHeader eyebrow="SEALens signal review" title="Areas of attention"/>{[['Student Engagement','↓ 22'],['Questioning Frequency','↓ 18'],['Teacher Talk Ratio','↑ 12%']].map(x=><div key={x[0]} className="mb-2 flex justify-between rounded-lg border border-slate-100 p-3"><span className="text-sm font-semibold">{x[0]}</span><b className="text-rose-600">{x[1]}</b></div>)}<Button onClick={()=>go('sealens')} className="mt-4 w-full" icon={<Sparkles size={14}/>}>Analyze with SEALens</Button></Card><Card className="p-6"><SectionHeader eyebrow="Priority classes" title="Classes requiring attention"/>{classes.filter(c=>c.branch==='Surabaya').map(c=><button onClick={()=>go('class-detail')} key={c.id} className="flex w-full items-center justify-between border-b border-slate-100 py-3 text-left"><span><b className="text-sm">{c.id}</b><small className="ml-2 text-xs text-slate-400">{c.teacher}</small></span><b className="text-rose-600">{c.quality}</b></button>)}</Card></div></>}
-function Simple({type,go}:{type:string;go:(p:PageId)=>void}){if(type==='branches')return <><Header eyebrow="Performance" title="Branch Performance" sub="A network-wide view of branch quality and experience signals."/><Card className="overflow-hidden"><div className="grid grid-cols-6 gap-3 bg-slate-50 px-5 py-3 text-[10px] font-bold uppercase tracking-wider text-slate-400"><span>Branch</span><span>Region</span><span>NPS</span><span>Parent Sat.</span><span>Quality</span><span>Status</span></div>{branches.map(b=><button key={b.branch} onClick={()=>b.branch==='Surabaya'&&go('branch-detail')} className="grid w-full grid-cols-6 gap-3 border-t border-slate-100 px-5 py-4 text-left hover:bg-slate-50"><b>{b.branch}</b><span>{b.name}</span><span>{b.nps}</span><span>{b.parentSatisfaction}</span><span>{b.classQuality}</span><StatusBadge status={b.status}/></button>)}</Card></>;if(type==='classes')return <><Header eyebrow="Performance" title="Class Quality" sub="Explore classroom-level quality signals across the network."/><Card className="overflow-hidden">{classes.map(c=><button key={c.id} onClick={()=>go('class-detail')} className="grid w-full grid-cols-5 gap-3 border-b border-slate-100 px-5 py-4 text-left hover:bg-slate-50"><b>{c.id}</b><span>{c.branch}</span><span>{c.teacher}</span><b>{c.quality}</b><StatusBadge status={c.status}/></button>)}</Card></>;if(type==='regions')return <><Header eyebrow="Performance" title="Regional Performance" sub="Compare quality signals across five operating regions."/><div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{regions.map(r=><Card key={r.name} className="p-5"><div className="flex justify-between"><b>{r.name}</b><StatusBadge status={r.status}/></div><div className="mt-5 grid grid-cols-2 gap-4 text-sm"><span>NPS <b className="block text-xl">{r.nps}</b></span><span>Parent Sat. <b className="block text-xl">{r.parentSatisfaction}</b></span><span>Engagement <b className="block text-xl">{r.teacherEngagement}%</b></span><span>Quality <b className="block text-xl">{r.classQuality}</b></span></div></Card>)}</div></>;return <><Header eyebrow="Learning layer" title="SEALearn" sub="Learning Activity Intelligence connecting teacher growth with classroom quality."/><div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"><KPI label="Active Teachers" value="386" target="of 400" icon={<Users size={17}/>}/><KPI label="Active Students" value="4,820" target="Network" icon={<GraduationCap size={17}/>} accent="teal"/><KPI label="Course Completion" value="91%" target="This period" icon={<BookOpen size={17}/>} accent="amber"/><KPI label="Training Completion" value="84%" target="+4%" icon={<Target size={17}/>} accent="navy"/></div><div className="mt-6 grid gap-6 lg:grid-cols-2"><Card className="p-6"><SectionHeader eyebrow="Teacher learning activity" title="Development signals"/>{([['Lesson Plans',92],['Training',84],['Assessment',89],['Coaching',71]] as const).map(x=><MetricRow key={x[0]} label={x[0]} value={x[1]} className="mb-5"/>)}</Card><Card className="p-6"><SectionHeader eyebrow="Student learning activity" title="Learning health"/>{([['Attendance',94],['Assignment Completion',88],['Assessment Completion',91],['Learning Progress',82]] as const).map(x=><MetricRow key={x[0]} label={x[0]} value={x[1]} color="navy" className="mb-5"/>)}</Card></div></>}
-function ClassDetail({go}:{go:(p:PageId)=>void}){return <><button onClick={()=>go('classes')} className="mb-5 flex items-center gap-2 text-xs text-slate-500"><ArrowLeft size={14}/>All classes</button><Header eyebrow="Class quality · Surabaya" title="Surabaya A1" sub="Teacher A · Simulated classroom quality signals" action={<StatusBadge status="Attention"/>}/><div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"><KPI label="Class Quality" value="61 / 100" target="Benchmark 78" icon={<Activity size={17}/>} accent="rose"/><KPI label="Student Engagement" value="52" target="Benchmark 74" icon={<Users size={17}/>} accent="amber"/><KPI label="Teacher Interaction" value="59" target="Benchmark 76" icon={<MessageSquare size={17}/>} accent="navy"/><KPI label="Classroom Mgmt." value="70" target="Benchmark 78" icon={<ShieldCheck size={17}/>} /></div><Card className="mt-6 p-6"><SectionHeader eyebrow="Quality breakdown" title="Five classroom dimensions"/>{qualityDimensions.map(x=><MetricRow key={x.label} label={x.label} value={x.value} benchmark={x.benchmark} className="mb-5"/>)}<Button onClick={()=>go('sealens')} icon={<Sparkles size={14}/>}>Analyze with SEALens</Button></Card></>}
-function Teacher({go}:{go:(p:PageId)=>void}){return <><Header eyebrow="Teacher workspace" title="Good morning, Teacher A" sub="Your personal quality and development view."/><div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"><KPI label="Your Teaching Quality" value="62 / 100" target="+4 this month" icon={<Activity size={17}/>}/><KPI label="Student Engagement" value="52" target="Opportunity area" icon={<Users size={17}/>} accent="rose"/><KPI label="Questioning Frequency" value="48" target="Opportunity area" icon={<MessageSquare size={17}/>} accent="amber"/><KPI label="Training Completion" value="76%" target="3 of 4 modules" icon={<GraduationCap size={17}/>} accent="navy"/></div><Card className="mt-6 p-6"><SectionHeader eyebrow="AI development insight" title="Your strongest opportunity"/><p className="text-sm text-slate-600">Improve student participation through questioning techniques.</p><Button onClick={()=>go('peer-matching')} className="mt-4" icon={<Users size={14}/>}>Request peer session</Button></Card></>}
-function Manager({go}:{go:(p:PageId)=>void}){return <><Header eyebrow="Branch Manager · Surabaya" title="Good morning, Rizky" sub="Your branch quality command center."/><div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"><KPI label="Branch Quality" value="61 / 100" target="Network 74" icon={<Activity size={17}/>} accent="rose"/><KPI label="NPS" value="36" target="Network 41.5" icon={<HeartPulse size={17}/>} accent="navy"/><KPI label="Parent Satisfaction" value="3.98 / 5" target="Network 4.14" icon={<MessageSquare size={17}/>} accent="amber"/><KPI label="Teacher Engagement" value="58%" target="Network 58%" icon={<Users size={17}/>} /></div><Card className="mt-6 p-6"><SectionHeader eyebrow="SEALens insights" title="Recommended action"/><p className="text-sm text-slate-600">Support Teacher A with peer learning for student engagement.</p><Button onClick={()=>go('sealens')} className="mt-4" icon={<Sparkles size={14}/>}>Review recommendation</Button></Card></>}
-function App(){const [page,setPage]=useState<PageId>('overview');const [role,setRole]=useState<UserRole>('HQ');const [collapsed,setCollapsed]=useState(false);const [modal,setModal]=useState<'review'|'session'|null>(null);const [approved,setApproved]=useState(false);const go=(p:PageId)=>setPage(p);let view:ReactNode;switch(page){case'overview':view=<Overview go={go} role={role}/>;break;case'branch-detail':view=<BranchDetail go={go}/>;break;case'sealens':view=<Sealens go={go} review={()=>setModal('review')}/>;break;case'peer-matching':view=<Peer session={()=>setModal('session')}/>;break;case'interventions':view=<Interventions approved={approved}/>;break;case'classes':view=<Simple type="classes" go={go}/>;break;case'branches':view=<Simple type="branches" go={go}/>;break;case'regions':view=<Simple type="regions" go={go}/>;break;case'class-detail':view=<ClassDetail go={go}/>;break;case'sealive':view=<ClassDetail go={go}/>;break;case'sealearn':view=<Simple type="sealearn" go={go}/>;break;case'teachers':view=<Teacher go={go}/>;break;default:view=<Simple type="regions" go={go}/>;}return <div className="min-h-screen bg-slate-50"><Sidebar page={page} go={go} collapsed={collapsed} setCollapsed={setCollapsed}/><Topbar role={role} setRole={setRole} go={go}/><main className={`min-h-screen pt-[76px] transition-all ${collapsed?'pl-[72px]':'pl-[252px]'}`}><div className="page-enter mx-auto max-w-[1500px] p-6 md:p-8">{view}</div></main>{modal&&<Modal kind={modal} close={()=>setModal(null)} approve={()=>{setApproved(true);setModal(null);setPage(modal==='review'?'peer-matching':'interventions')}}/>}</div>}
-export default App;
+type UserRole = 'HQ' | 'Branch Manager';
+type PageId = 'overview' | 'branches' | 'classes' | 'sealearn' | 'sealive' | 'sealens' | 'interventions' | 'peer-matching' | 'regions' | 'network';
+
+interface AppState {
+  currentUser: { role: UserRole; name: string; initials: string };
+  currentPage: PageId;
+  selectedCenterId: string;
+  sidebarOpen: boolean;
+  selectedTeacherName: string | null;
+}
+
+// ========================================
+// NAVIGATION & ACCESS CONTROL
+// ========================================
+
+function getVisibleNav(role: UserRole) {
+  const baseNav = [
+    { id: 'overview' as PageId, label: 'Overview', icon: Home },
+    { id: 'classes' as PageId, label: 'Teachers', icon: Users },
+    { id: 'sealive' as PageId, label: 'SEALive', icon: Eye },
+    { id: 'sealens' as PageId, label: 'SEALens', icon: BarChart3 },
+    { id: 'interventions' as PageId, label: 'Interventions', icon: Zap },
+    { id: 'peer-matching' as PageId, label: 'Peer Matching', icon: Users2 },
+    { id: 'sealearn' as PageId, label: 'SEALearn', icon: BookOpen },
+  ];
+  const adminNav = [
+    { id: 'branches' as PageId, label: 'Branches', icon: Grid3x3 },
+    { id: 'regions' as PageId, label: 'Regions', icon: Settings },
+    { id: 'network' as PageId, label: 'Network', icon: AlertCircle },
+  ];
+  return role === 'HQ' ? [...baseNav, ...adminNav] : baseNav;
+}
+
+function canAccess(role: UserRole, pageId: PageId): boolean {
+  const restricted: Record<UserRole, PageId[]> = {
+    'HQ': [],
+    'Branch Manager': ['branches', 'regions', 'network'],
+  };
+  return !restricted[role].includes(pageId);
+}
+
+// ========================================
+// MAIN APP COMPONENT
+// ========================================
+
+export default function App() {
+  const [state, setState] = useState<AppState>({
+    currentUser: { role: 'HQ', name: 'Alya Pratama', initials: 'AP' },
+    currentPage: 'overview',
+    selectedCenterId: 'sby-dip', // Sparks English Diponegoro - Mr. Rangga's center
+    sidebarOpen: true,
+    selectedTeacherName: null,
+  });
+
+  const go = (pageId: PageId) => {
+    if (canAccess(state.currentUser.role, pageId)) {
+      setState(s => ({ ...s, currentPage: pageId }));
+    }
+  };
+
+  const switchRole = (role: UserRole) => {
+    const user = role === 'HQ'
+      ? { role: 'HQ' as UserRole, name: 'Alya Pratama', initials: 'AP' }
+      : { role: 'Branch Manager' as UserRole, name: 'Mr. Yusuf', initials: 'MY' };
+    setState(s => ({
+      ...s,
+      currentUser: user,
+      selectedCenterId: role === 'Branch Manager' ? 'sby-dip' : s.selectedCenterId,
+    }));
+  };
+
+  const currentCenter = centersList.find(c => c.id === state.selectedCenterId) || centersList[0];
+  const sameRegionCenters = centersList.filter(c => c.region === currentCenter.region);
+  const visibleNav = getVisibleNav(state.currentUser.role);
+
+  return (
+    <div className="flex h-screen bg-slate-50">
+      {/* ==================== SIDEBAR ==================== */}
+      <div className={`fixed inset-y-0 left-0 z-20 w-64 transform bg-gradient-to-b from-navy-900 to-navy-800 shadow-lg transition-transform ${state.sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:relative lg:translate-x-0`}>
+        <div className="flex h-screen flex-col">
+          <div className="flex items-center gap-3 border-b border-navy-700 px-6 py-6">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-teal-500 font-bold text-white">S</div>
+            <div>
+              <p className="font-bold text-white">SEAL</p>
+              <p className="text-xs text-navy-300">Quality Monitor</p>
+            </div>
+          </div>
+
+          <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-6">
+            {visibleNav.map(nav => {
+              const IconComp = nav.icon;
+              const isActive = state.currentPage === nav.id;
+              return (
+                <button
+                  key={nav.id}
+                  onClick={() => go(nav.id)}
+                  className={`w-full flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-all ${
+                    isActive ? 'bg-teal-500 text-white shadow-md' : 'text-navy-200 hover:bg-navy-700'
+                  }`}
+                >
+                  <IconComp size={18} />
+                  <span>{nav.label}</span>
+                </button>
+              );
+            })}
+          </nav>
+
+          <div className="space-y-3 border-t border-navy-700 px-3 py-6">
+            <button className="w-full flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium text-navy-200 hover:bg-navy-700">
+              <Settings size={18} /><span>Settings</span>
+            </button>
+            <button className="w-full flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium text-rose-300 hover:bg-navy-700">
+              <LogOut size={18} /><span>Logout</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* ==================== MAIN CONTENT ==================== */}
+      <div className="flex flex-1 flex-col overflow-hidden">
+        <div className="border-b border-slate-200 bg-white px-6 py-4 shadow-sm">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => setState(s => ({ ...s, sidebarOpen: !s.sidebarOpen }))}
+                className="rounded-lg p-2 text-slate-600 hover:bg-slate-100 lg:hidden"
+              >
+                <Menu size={20} />
+              </button>
+              <div>
+                <h1 className="text-lg font-bold text-slate-900">
+                  {visibleNav.find(n => n.id === state.currentPage)?.label || 'SEAL'}
+                </h1>
+                {state.currentUser.role === 'Branch Manager' && (
+                  <p className="text-xs text-slate-500 mt-1">📍 {currentCenter.name}, {currentCenter.region}</p>
+                )}
+              </div>
+            </div>
+
+            <div className="flex items-center gap-4">
+              <div className="flex gap-2 rounded-lg bg-slate-100 p-1">
+                {(['HQ', 'Branch Manager'] as UserRole[]).map(role => (
+                  <button
+                    key={role}
+                    onClick={() => switchRole(role)}
+                    className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${
+                      state.currentUser.role === role ? 'bg-white text-navy-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    {role}
+                  </button>
+                ))}
+              </div>
+
+              {state.currentUser.role === 'Branch Manager' && (
+                <select
+                  value={state.selectedCenterId}
+                  onChange={(e) => setState(s => ({ ...s, selectedCenterId: e.target.value }))}
+                  className="text-xs border border-slate-300 rounded-lg px-3 py-2 text-slate-700 font-medium"
+                >
+                  {sameRegionCenters.map(c => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+              )}
+
+              <div className="flex items-center gap-3 border-l border-slate-200 pl-4">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-navy-100 font-bold text-navy-900">
+                  {state.currentUser.initials}
+                </div>
+                <div className="hidden sm:block">
+                  <p className="text-sm font-bold text-slate-900">{state.currentUser.name}</p>
+                  <p className="text-xs text-slate-500">{state.currentUser.role}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex-1 overflow-y-auto">
+          <div className="mx-auto max-w-7xl px-6 py-8">
+            {state.currentPage === 'overview' && <PageOverview state={state} setState={setState} currentCenter={currentCenter} />}
+            {state.currentPage === 'branches' && <PageBranches />}
+            {state.currentPage === 'classes' && <PageTeachers currentCenter={currentCenter} setState={setState} />}
+            {state.currentPage === 'sealive' && <PageSEALive state={state} currentCenter={currentCenter} />}
+            {state.currentPage === 'sealens' && <PageSEALens state={state} currentCenter={currentCenter} setState={setState} />}
+            {state.currentPage === 'interventions' && <PageInterventions currentCenter={currentCenter} />}
+            {state.currentPage === 'peer-matching' && <PagePeerMatching currentCenter={currentCenter} />}
+            {state.currentPage === 'sealearn' && <PageSEALearn state={state} currentCenter={currentCenter} />}
+            {state.currentPage === 'regions' && <PageRegions />}
+            {state.currentPage === 'network' && <PageNetwork />}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ========================================
+// PAGE: OVERVIEW
+// ========================================
+
+function PageOverview({ state, setState, currentCenter }: { state: AppState; setState: (s: AppState | ((prev: AppState) => AppState)) => void; currentCenter: typeof centersList[0] }) {
+  const topPriority = [...allTeachers].filter(t => t.score < 70).sort((a, b) => a.score - b.score).slice(0, 3);
+
+  return (
+    <div className="space-y-8">
+      <div>
+        <SectionHeader
+          eyebrow="Current Status"
+          title={state.currentUser.role === 'HQ' ? 'Teaching Quality Network' : `${currentCenter.name}`}
+          description={state.currentUser.role === 'HQ' ? '20 centers, 400+ teachers, 5 regions' : 'Real-time monitoring & insights'}
+        />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <KPI label="Teacher Engagement" value="58%" target="Target: 90%" trend="↑ 12%" trendLabel="vs last month" icon={<Users size={20} />} accent="navy" />
+          <KPI label="NPS Score" value="41.5" target="Target: 60+" trend="↑ 8%" trendLabel="improving" icon={<Award size={20} />} accent="teal" />
+          <KPI label="Parent Satisfaction" value="4.14/5" target="Target: 4.6" trend="↑ 3%" trendLabel="steady growth" icon={<MessageSquare size={20} />} accent="amber" />
+          <KPI label="Active Interventions" value={String(interventions.length)} target="All regions" icon={<Zap size={20} />} accent="rose" />
+        </div>
+      </div>
+
+      <div>
+        <SectionHeader title="Priority Actions" description="Teachers needing immediate support" />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {topPriority.map(teacher => (
+            <PriorityCard
+              key={teacher.name}
+              title={teacher.name}
+              metric1="Current Score"
+              val1={teacher.score}
+              metric2="Center"
+              val2={teacher.center.replace('Sparks English ', '')}
+              onClick={() => setState(s => ({ ...s, selectedTeacherName: teacher.name, currentPage: 'sealens' }))}
+            />
+          ))}
+        </div>
+      </div>
+
+      {state.currentUser.role === 'HQ' && (
+        <div>
+          <SectionHeader title="Centers at a Glance" description="All 20 locations" />
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+            {centersList.map(c => (
+              <Card key={c.id} className="p-4 text-center hover:shadow-md transition-all">
+                <p className="font-bold text-sm text-slate-900">{c.name.replace('Sparks English ', '')}</p>
+                <p className="text-xs text-slate-500 mt-1">{c.region}</p>
+                <div className="mt-3 flex items-center justify-center gap-1">
+                  <span className="text-lg font-bold text-navy-700">{c.teachers}</span>
+                  <span className="text-xs text-slate-400">teachers</span>
+                </div>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ========================================
+// PAGE: BRANCHES (HQ ONLY)
+// ========================================
+
+function PageBranches() {
+  const regionNames = [...new Set(centersList.map(c => c.region))];
+
+  return (
+    <div className="space-y-8">
+      <SectionHeader eyebrow="Network Overview" title="All 20 Centers" description="Complete branch infrastructure" />
+      {regionNames.map(regionName => (
+        <div key={regionName}>
+          <h3 className="text-lg font-bold text-slate-900 mb-4">{regionName}</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {centersList.filter(c => c.region === regionName).map(center => {
+              const centerTeachers = allTeachers.filter(t => t.center === center.name);
+              const avgScore = centerTeachers.length > 0
+                ? Math.round(centerTeachers.reduce((sum, t) => sum + t.score, 0) / centerTeachers.length)
+                : null;
+              return (
+                <Card key={center.id} className="p-6">
+                  <div className="flex items-start justify-between mb-4">
+                    <div>
+                      <h4 className="font-bold text-slate-900">{center.name}</h4>
+                      <p className="text-xs text-slate-500 mt-1">{center.city}</p>
+                    </div>
+                    <StatusBadge status="Active" variant="emerald" />
+                  </div>
+                  <div className="space-y-3 border-t border-slate-100 pt-4">
+                    <MetricRow label="Total Teachers" value={center.teachers} color="navy" />
+                    <MetricRow label="Total Classes" value={center.classes} color="teal" />
+                    {avgScore !== null && <MetricRow label="Avg. Score (sample)" value={avgScore} benchmark={80} color="amber" suffix="/100" />}
+                  </div>
+                </Card>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ========================================
+// PAGE: TEACHERS (per center)
+// ========================================
+
+function PageTeachers({ currentCenter, setState }: { currentCenter: typeof centersList[0]; setState: (s: AppState | ((prev: AppState) => AppState)) => void }) {
+  const centerTeachers = allTeachers.filter(t => t.center === currentCenter.name);
+
+  return (
+    <div className="space-y-8">
+      <SectionHeader
+        eyebrow={currentCenter.region}
+        title={`Teachers at ${currentCenter.name}`}
+        description={centerTeachers.length > 0 ? `${centerTeachers.length} instructors on record` : 'No sample data yet for this center'}
+      />
+      {centerTeachers.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {centerTeachers.map(teacher => (
+            <div key={teacher.name} onClick={() => setState(s => ({ ...s, selectedTeacherName: teacher.name, currentPage: 'sealens' }))} className="cursor-pointer">
+              <TeacherCard name={teacher.name} score={teacher.score} status={teacher.status} />
+            </div>
+          ))}
+        </div>
+      ) : (
+        <EmptyState title="No sample data" description="This center doesn't have detailed teacher records in the current mock dataset yet." />
+      )}
+    </div>
+  );
+}
+
+// ========================================
+// PAGE: SEALIVE
+// ========================================
+
+function PageSEALive({ state, currentCenter }: { state: AppState; currentCenter: typeof centersList[0] }) {
+  const isHQ = state.currentUser.role === 'HQ';
+  const visibleClasses = isHQ ? classes : classes.filter(c => c.branch === currentCenter.name);
+  const indices: { key: 'studentEngagement' | 'teacherInteraction' | 'classroomManagement' | 'teachingDelivery' | 'learningResponsiveness'; label: string }[] = [
+    { key: 'studentEngagement', label: 'Student Engagement' },
+    { key: 'teacherInteraction', label: 'Teacher Interaction' },
+    { key: 'classroomManagement', label: 'Classroom Management' },
+    { key: 'teachingDelivery', label: 'Teaching Delivery' },
+    { key: 'learningResponsiveness', label: 'Learning Responsiveness' },
+  ];
+
+  return (
+    <div className="space-y-8">
+      <SectionHeader
+        eyebrow="Quality Layer · On-site Processing"
+        title="SEALive"
+        description={isHQ ? 'Aggregated quality indices from every branch' : `Quality indices for ${currentCenter.name}`}
+      />
+
+      <Card className="p-5 bg-slate-50 border border-slate-200 flex items-start gap-3">
+        <ServerCog size={18} className="text-slate-400 mt-0.5 shrink-0" />
+        <p className="text-xs text-slate-500 leading-relaxed">
+          CCTV feeds are processed locally on each branch's PC using Roboflow/YOLO. <strong>No video or images ever leave the branch</strong> — only the five aggregated index scores per class shown below are transmitted to HQ. This is by design, for child safety and data-privacy reasons.
+        </p>
+      </Card>
+
+      {visibleClasses.length === 0 ? (
+        <EmptyState title="No processed data yet" description="This center doesn't have SEALive sample data in the current mock dataset." />
+      ) : (
+        <div className="space-y-6">
+          {visibleClasses.map(c => (
+            <Card key={c.id} className="p-6">
+              <div className="flex items-start justify-between mb-5">
+                <div>
+                  <h4 className="font-bold text-slate-900">{c.id}</h4>
+                  <p className="text-xs text-slate-500 mt-1">{c.teacher}{isHQ ? ` · ${c.branch}` : ''} · last processed {c.lastProcessed}</p>
+                </div>
+                <StatusBadge status={c.status} />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+                {indices.map(idx => (
+                  <MetricRow key={idx.key} label={idx.label} value={c[idx.key]} benchmark={75} color="navy" />
+                ))}
+              </div>
+            </Card>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ========================================
+// PAGE: SEALENS
+// ========================================
+
+function PageSEALens({ state, currentCenter, setState }: { state: AppState; currentCenter: typeof centersList[0]; setState: (s: AppState | ((prev: AppState) => AppState)) => void }) {
+  const selectedTeacher = state.selectedTeacherName
+    ? allTeachers.find(t => t.name === state.selectedTeacherName)
+    : null;
+  const centerTeachers = allTeachers.filter(t => t.center === currentCenter.name);
+  const listForPicker = centerTeachers.length > 0 ? centerTeachers : allTeachers.slice(0, 6);
+
+  const bestMentor = selectedTeacher
+    ? [...allTeachers].filter(t => t.name !== selectedTeacher.name).sort((a, b) => b.score - a.score)[0]
+    : null;
+
+  return (
+    <div className="space-y-8">
+      <SectionHeader eyebrow="Analytics & Decision Support" title="SEALens" description="Identify → Diagnose → Recommend → Human Decision" />
+
+      <Card className="p-6 bg-gradient-to-r from-navy-50 to-teal-50">
+        <p className="text-sm font-bold text-slate-600 mb-3">Select a teacher for detailed analysis:</p>
+        <div className="flex flex-wrap gap-2">
+          {listForPicker.map(t => (
+            <button
+              key={t.name}
+              onClick={() => setState(s => ({ ...s, selectedTeacherName: t.name }))}
+              className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+                state.selectedTeacherName === t.name ? 'bg-navy-900 text-white shadow-md' : 'bg-white text-slate-700 border border-slate-200 hover:border-navy-300'
+              }`}
+            >
+              {t.name}
+            </button>
+          ))}
+        </div>
+      </Card>
+
+      {selectedTeacher ? (
+        <div className="space-y-6">
+          <Card className="p-6 border-l-4 border-navy-700 bg-gradient-to-r from-navy-50 to-white">
+            <div className="flex items-start justify-between">
+              <div>
+                <h3 className="text-xl font-bold text-slate-900">{selectedTeacher.name}</h3>
+                <p className="text-sm text-slate-500 mt-1">{selectedTeacher.fullName} · {selectedTeacher.center} · {selectedTeacher.classId}</p>
+              </div>
+              <StatusBadge
+                status={selectedTeacher.status}
+                variant={selectedTeacher.status === 'Strong' ? 'emerald' : selectedTeacher.status === 'Needs Development' ? 'rose' : 'amber'}
+              />
+            </div>
+          </Card>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <KPI label="Overall Score" value={String(selectedTeacher.score)} target="/100" icon={<TrendingUp size={20} />} accent="navy" />
+            <KPI label="Engagement" value={String(selectedTeacher.engagement)} target="/100" icon={<Users size={20} />} accent="teal" />
+            <KPI label="Status" value={selectedTeacher.status} icon={<Award size={20} />} accent="amber" />
+          </div>
+
+          <div className="space-y-4">
+            <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Quality Dimensions (illustrative)</p>
+            <Card className="p-6 space-y-5">
+              {qualityDimensions.map(d => (
+                <MetricRow key={d.label} label={d.label} value={d.value} benchmark={d.benchmark} color="navy" />
+              ))}
+            </Card>
+          </div>
+
+          {selectedTeacher.status !== 'Strong' && bestMentor && (
+            <Card className="p-6 bg-gradient-to-r from-emerald-50 to-teal-50 border-l-4 border-emerald-500">
+              <p className="text-xs font-bold text-emerald-700 mb-2">AI RECOMMENDATION — Peer Matching</p>
+              <p className="text-sm font-bold text-slate-900">{selectedTeacher.name} ↔ {bestMentor.name}</p>
+              <p className="text-sm text-slate-600 mt-2">
+                {bestMentor.name} ({bestMentor.score}/100, {bestMentor.center.replace('Sparks English ', '')}) shows a strong associated pattern in student engagement.
+                Suggested: structured peer-learning session. Final decision remains with the Branch Manager.
+              </p>
+            </Card>
+          )}
+        </div>
+      ) : (
+        <EmptyState title="Select a teacher" description="Click a teacher above to view detailed SEALens analytics." />
+      )}
+    </div>
+  );
+}
+
+// ========================================
+// PAGE: INTERVENTIONS
+// ========================================
+
+function PageInterventions({ currentCenter }: { currentCenter: typeof centersList[0] }) {
+  const progressFor = (status: string, after?: number) => {
+    if (after !== undefined || status === 'Completed' || status === 'Re-measured') return 100;
+    if (status === 'In Progress') return 60;
+    if (status === 'Approved') return 30;
+    return 10;
+  };
+
+  return (
+    <div className="space-y-8">
+      <SectionHeader eyebrow="Action Layer" title="Intervention Management" description="From recommendation to measurable improvement" />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {interventions.map((int) => (
+          <Card key={int.id} className="p-6 border-l-4 border-teal-500">
+            <div className="flex items-start justify-between mb-3">
+              <div>
+                <h4 className="font-bold text-slate-900">{int.title}</h4>
+                <p className="text-xs text-slate-500 mt-1">{int.branch} · {int.teacher} · Owner: {int.owner}</p>
+              </div>
+              <StatusBadge status={int.status} />
+            </div>
+            <p className="text-xs font-bold uppercase tracking-widest text-slate-400 mt-4 mb-2">{int.type}</p>
+            <div className="space-y-2">
+              <MetricRow
+                label={`Score: ${int.before} → ${int.after ?? int.target}`}
+                value={progressFor(int.status, int.after)}
+                benchmark={100}
+                color={int.after ? 'teal' : 'amber'}
+                suffix="%"
+              />
+            </div>
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ========================================
+// PAGE: PEER MATCHING
+// ========================================
+
+function PagePeerMatching({ currentCenter }: { currentCenter: typeof centersList[0] }) {
+  const centerTeachers = allTeachers.filter(t => t.center === currentCenter.name);
+  const developing = centerTeachers.filter(t => t.score < 75);
+  const mentors = [...allTeachers].sort((a, b) => b.score - a.score);
+
+  return (
+    <div className="space-y-8">
+      <SectionHeader eyebrow="Action Layer" title="Peer Matching" description="Connect developing teachers with strong-performing peers network-wide" />
+
+      {developing.length > 0 ? (
+        <div className="space-y-8">
+          {developing.map((dev) => {
+            const mentor = mentors.find(m => m.name !== dev.name && m.score >= 85) || mentors[0];
+            return (
+              <Card key={dev.name} className="p-6 bg-gradient-to-r from-amber-50 to-orange-50 border-l-4 border-amber-500">
+                <h4 className="font-bold text-slate-900 mb-4">Pairing: {dev.name} ↔ {mentor.name}</h4>
+                <div className="grid grid-cols-2 gap-6">
+                  <div>
+                    <p className="text-xs font-bold text-slate-500 mb-2">DEVELOPING — {dev.center.replace('Sparks English ', '')}</p>
+                    <p className="text-2xl font-bold text-amber-700">{dev.score}<span className="text-sm text-slate-400">/100</span></p>
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-slate-500 mb-2">STRONG MENTOR — {mentor.center.replace('Sparks English ', '')}</p>
+                    <p className="text-2xl font-bold text-emerald-700">{mentor.score}<span className="text-sm text-slate-400">/100</span></p>
+                  </div>
+                </div>
+                <p className="text-sm text-slate-600 mt-4">Structured peer-learning session · pending Branch Manager approval</p>
+              </Card>
+            );
+          })}
+        </div>
+      ) : (
+        <EmptyState title="No pairing needed" description="All teachers at this center are performing at or above the development threshold." />
+      )}
+    </div>
+  );
+}
+
+// ========================================
+// PAGE: SEALEARN
+// ========================================
+
+function PageSEALearn({ state, currentCenter }: { state: AppState; currentCenter: typeof centersList[0] }) {
+  const isHQ = state.currentUser.role === 'HQ';
+  const visibleAssessments = isHQ ? classAssessments : classAssessments.filter(a => a.branch === currentCenter.name);
+  const visibleFeedback = isHQ ? parentFeedback : parentFeedback.filter(f => f.branch === currentCenter.name);
+
+  return (
+    <div className="space-y-8">
+      <SectionHeader
+        eyebrow="Learning Layer · Data from Canvas LMS"
+        title="SEALearn"
+        description={isHQ ? 'Assessment results & parent feedback across all branches' : `Assessment results & parent feedback for ${currentCenter.name}`}
+      />
+
+      <Card className="p-5 bg-slate-50 border border-slate-200 flex items-start gap-3">
+        <ClipboardCheck size={18} className="text-slate-400 mt-0.5 shrink-0" />
+        <p className="text-xs text-slate-500 leading-relaxed">
+          Course delivery and curriculum stay inside Canvas itself. What flows into SEAL is only <strong>assessment results</strong> and <strong>parent feedback</strong> — the two data points that connect learning outcomes back to teaching quality.
+        </p>
+      </Card>
+
+      <div>
+        <p className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Assessment Results</p>
+        {visibleAssessments.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {visibleAssessments.map(a => (
+              <Card key={a.classId} className="p-6">
+                <div className="flex items-start justify-between mb-4">
+                  <div>
+                    <h4 className="font-bold text-slate-900">{a.classId}</h4>
+                    {isHQ && <p className="text-xs text-slate-500 mt-1">{a.branch}</p>}
+                  </div>
+                  <p className="text-xs text-slate-400">Last: {a.lastAssessment}</p>
+                </div>
+                <div className="space-y-3">
+                  <MetricRow label="Average Score" value={a.avgScore} benchmark={80} color="navy" suffix="/100" />
+                  <MetricRow label="Completion Rate" value={a.completionRate} benchmark={90} color="teal" suffix="%" />
+                </div>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <EmptyState title="No assessment data" description="No Canvas assessment records for this center yet." />
+        )}
+      </div>
+
+      <div>
+        <p className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Parent Feedback</p>
+        {visibleFeedback.length > 0 ? (
+          <div className="space-y-4">
+            {visibleFeedback.map(f => (
+              <Card key={f.id} className="p-5">
+                <div className="flex items-start justify-between mb-2">
+                  <div>
+                    <p className="font-bold text-sm text-slate-900">{f.parentLabel}</p>
+                    <p className="text-xs text-slate-400 mt-0.5">{f.classId}{isHQ ? ` · ${f.branch}` : ''} · {f.date}</p>
+                  </div>
+                  <div className="flex items-center gap-0.5 shrink-0">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <Star key={i} size={14} className={i < f.rating ? 'fill-amber-400 text-amber-400' : 'text-slate-200'} />
+                    ))}
+                  </div>
+                </div>
+                <p className="text-sm text-slate-600 mt-2">{f.comment}</p>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <EmptyState title="No feedback yet" description="No parent feedback records for this center yet." />
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ========================================
+// PAGE: REGIONS (HQ ONLY)
+// ========================================
+
+function PageRegions() {
+  return (
+    <div className="space-y-8">
+      <SectionHeader eyebrow="Network Management" title="All Regions" description="Regional performance summary" />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {regions.map(r => (
+          <Card key={r.name} className="p-6">
+            <div className="flex items-start justify-between mb-4">
+              <h4 className="font-bold text-slate-900">{r.name}</h4>
+              <StatusBadge status={r.status} />
+            </div>
+            <div className="space-y-3">
+              <MetricRow label="NPS" value={r.nps} benchmark={60} color="navy" />
+              <MetricRow label="Parent Satisfaction" value={Math.round(r.parentSatisfaction * 20)} benchmark={92} color="amber" suffix="/100" />
+              <MetricRow label="Teacher Engagement" value={r.teacherEngagement} benchmark={90} color="teal" suffix="%" />
+              <MetricRow label="Class Quality" value={r.classQuality} benchmark={78} color="rose" />
+            </div>
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ========================================
+// PAGE: NETWORK (HQ ONLY)
+// ========================================
+
+function PageNetwork() {
+  return (
+    <div className="space-y-8">
+      <SectionHeader eyebrow="System Status" title="Network & Infrastructure" description="Connectivity & system health across 20 centers" />
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <KPI label="Centers Online" value={String(centersList.length)} icon={<Zap size={20} />} accent="teal" />
+        <KPI label="Total Teachers" value={String(centersList.reduce((sum, c) => sum + c.teachers, 0))} icon={<Users size={20} />} accent="navy" />
+        <KPI label="Total Classes" value={String(centersList.reduce((sum, c) => sum + c.classes, 0))} icon={<TrendingUp size={20} />} accent="teal" />
+      </div>
+      <Card className="p-6">
+        <h4 className="font-bold text-slate-900 mb-2">System Alerts</h4>
+        <p className="text-sm text-slate-600">All systems operational. No alerts at this time.</p>
+      </Card>
+    </div>
+  );
+}
