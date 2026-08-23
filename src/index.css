@@ -1,0 +1,68 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    font-feature-settings: 'cv11', 'ss01';
+    font-variation-settings: 'opsz' 32;
+  }
+
+  body {
+    @apply bg-slate-50 text-slate-900 font-sans antialiased;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Scrollbar styling */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-slate-300 rounded-full;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-slate-400;
+  }
+
+  /* Number font feature */
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@layer components {
+  .card-base {
+    @apply bg-white rounded-xl border border-slate-200/80 shadow-card transition-all duration-200;
+  }
+  .card-hover {
+    @apply hover:shadow-card-hover hover:border-slate-300;
+  }
+  .label-eyebrow {
+    @apply text-xs font-semibold uppercase tracking-wider text-slate-400;
+  }
+  .label-muted {
+    @apply text-sm text-slate-500;
+  }
+  .number-display {
+    @apply text-3xl font-bold tracking-tight text-slate-900 tabular-nums;
+  }
+}
+
+/* Page transition */
+.page-enter {
+  animation: fade-in 0.3s ease-out;
+}
+
+/* Custom focus ring */
+.focus-ring {
+  @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/40 focus-visible:ring-offset-1;
+}
